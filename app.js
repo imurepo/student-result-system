@@ -35,7 +35,7 @@ function saveStudent() {
   };
 
   subjectsList.forEach((s, i) => {
-    const obt = Number(document.getElementById(`obt_${i}`).value);
+    const obt = Number(document.getElementById(`obt_${i}`).value) || 0;
     if (obt > s.total) {
       alert(`${s.name}: Obtained marks cannot exceed total`);
       return;
@@ -112,11 +112,11 @@ function downloadPDF() {
   doc.save(`${data.roll}_Result.pdf`);
 }
 
-// Export Excel (Compact: 1 student per row)
+// Export Excel (Subjects as columns, 1 row per student)
 function exportExcel() {
   let rows = [];
 
-  // Header: Student info + each subject columns
+  // Header: Student info + subjects (Obt / Total / Weightage per subject)
   const header = ["Roll No", "Student Name", "Class", "Semester"];
   subjectsList.forEach(s => {
     header.push(`${s.name} Obt`);
@@ -129,15 +129,20 @@ function exportExcel() {
   Object.keys(localStorage).forEach(key => {
     if (!key.startsWith("student_")) return;
 
-    const s = JSON.parse(localStorage[key]);
-    const weight = s.semester == 1 ? 45 : 55;
+    const student = JSON.parse(localStorage[key]);
+    const weight = student.semester == 1 ? 45 : 55;
     let totalAggregate = 0;
-    let subjectData = [];
+    let subjectCols = [];
 
-    s.subjects.forEach(sub => {
-      const weightageMarks = ((sub.obt / sub.total) * weight).toFixed(2);
+    // Fill subject columns
+    subjectsList.forEach(subDef => {
+      const sub = student.subjects.find(s => s.name === subDef.name);
+      const obt = sub ? sub.obt : 0;
+      const total = sub ? sub.total : subDef.total;
+      const weightageMarks = ((obt / total) * weight).toFixed(2);
       totalAggregate += Number(weightageMarks);
-      subjectData.push(sub.obt, sub.total, weightageMarks);
+
+      subjectCols.push(obt, total, weightageMarks);
     });
 
     const finalPercentage = ((totalAggregate / (subjectsList.length * weight)) * 100).toFixed(2);
@@ -147,11 +152,11 @@ function exportExcel() {
                   finalPercentage >= 50 ? "C" : "D";
 
     const row = [
-      `"${s.roll}"`,
-      `"${s.name}"`,
-      `"${s.className}"`,
-      `"${s.semester == 1 ? "Semester-I (45%)" : "Semester-II (55%)"}"`
-    ].concat(subjectData, totalAggregate.toFixed(2), finalPercentage + "%", grade);
+      `"${student.roll}"`,
+      `"${student.name}"`,
+      `"${student.className}"`,
+      `"${student.semester == 1 ? "Semester-I (45%)" : "Semester-II (55%)"}"`
+    ].concat(subjectCols, totalAggregate.toFixed(2), finalPercentage + "%", grade);
 
     rows.push(row);
   });
@@ -161,6 +166,6 @@ function exportExcel() {
 
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "Student_Result_Compact.csv";
+  a.download = "Student_Result_Columns.csv";
   a.click();
 }
