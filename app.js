@@ -1,10 +1,8 @@
 // Subject list
 const subjectsList = [
- 
-{ name: "English", total: 58 },
+  { name: "English", total: 58 },
   { name: "Mathematics", total: 63 },
   { name: "Science", total: 65 }
- 
 ];
 
 // Render subjects dynamically
@@ -35,7 +33,7 @@ function saveStudent() {
   };
 
   subjectsList.forEach((s, i) => {
-    const obt = Number(document.getElementById(`obt_${i}`).value) || 0;
+    const obt = parseFloat(document.getElementById(`obt_${i}`).value) || 0;
     if (obt > s.total) {
       alert(`${s.name}: Obtained marks cannot exceed total`);
       return;
@@ -116,25 +114,27 @@ function downloadPDF() {
 function exportExcel() {
   let rows = [];
 
-  // Header: Student info + subjects (Obt / Total / Weightage per subject)
+  // Header
   const header = ["Roll No", "Student Name", "Class", "Semester"];
   subjectsList.forEach(s => {
-    header.push(`${s.name} Obt`);
+    header.push(`${s.name} Obtained`);
     header.push(`${s.name} Total`);
     header.push(`${s.name} Weightage`);
   });
   header.push("Total Aggregate", "Final %", "Grade");
   rows.push(header);
 
-  Object.keys(localStorage).forEach(key => {
-    if (!key.startsWith("student_")) return;
+  // Sort students by roll number for clarity
+  const studentKeys = Object.keys(localStorage)
+    .filter(k => k.startsWith("student_"))
+    .sort();
 
+  studentKeys.forEach(key => {
     const student = JSON.parse(localStorage[key]);
     const weight = student.semester == 1 ? 45 : 55;
     let totalAggregate = 0;
     let subjectCols = [];
 
-    // Fill subject columns
     subjectsList.forEach(subDef => {
       const sub = student.subjects.find(s => s.name === subDef.name);
       const obt = sub ? sub.obt : 0;
