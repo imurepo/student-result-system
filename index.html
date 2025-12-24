@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Result System</title>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+</head>
+<body>
+<div class="container">
+<h2>Student Result Management System</h2>
+<div class="card">
+<input id="rollNo" placeholder="Roll No">
+<input id="studentName" placeholder="Student Name">
+<select id="className">
+<option value="">Select Class</option>
+<option>VI</option>
+<option>VII</option>
+<option>VIII</option>
+</select>
+<select id="semester">
+<option value="1">Semester-I</option>
+<option value="2">Semester-II</option>
+</select>
+</div>
+<h3>Subjects</h3>
+<div id="subjects"></div>
+<button onclick="saveStudent()">💾 Save Student</button>
+<button onclick="generateResult()">📄 View Result</button>
+<button onclick="downloadPDF()">🧾 Download PDF</button>
+<button onclick="exportExcel()">📊 Export Excel</button>
+<div id="result"></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
