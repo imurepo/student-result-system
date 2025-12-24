@@ -1,10 +1,10 @@
 // Subject list
 const subjectsList = [
-  { name: "Urdu", total: 100 },
-  { name: "English", total: 100 },
-  { name: "Mathematics", total: 100 },
-  { name: "Islamiyat", total: 50 },
-  { name: "Computer", total: 100 }
+ 
+{ name: "English", total: 58 },
+  { name: "Mathematics", total: 63 },
+  { name: "Science", total: 65 }
+ 
 ];
 
 // Render subjects dynamically
