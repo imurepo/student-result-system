@@ -112,16 +112,19 @@ function downloadPDF() {
   doc.save(`${data.roll}_Result.pdf`);
 }
 
-// Export Excel (CSV)
+// Export Excel (Compact: 1 student per row)
 function exportExcel() {
   let rows = [];
 
-  // Header
-  rows.push([
-    "Roll No","Student Name","Class","Semester","Subject",
-    "Total Marks","Marks Obtained","Weightage %","Weightage Marks",
-    "Final Aggregate","Final Percentage","Grade"
-  ]);
+  // Header: Student info + each subject columns
+  const header = ["Roll No", "Student Name", "Class", "Semester"];
+  subjectsList.forEach(s => {
+    header.push(`${s.name} Obt`);
+    header.push(`${s.name} Total`);
+    header.push(`${s.name} Weightage`);
+  });
+  header.push("Total Aggregate", "Final %", "Grade");
+  rows.push(header);
 
   Object.keys(localStorage).forEach(key => {
     if (!key.startsWith("student_")) return;
@@ -129,41 +132,35 @@ function exportExcel() {
     const s = JSON.parse(localStorage[key]);
     const weight = s.semester == 1 ? 45 : 55;
     let totalAggregate = 0;
+    let subjectData = [];
 
     s.subjects.forEach(sub => {
-      totalAggregate += (sub.obt / sub.total) * weight;
+      const weightageMarks = ((sub.obt / sub.total) * weight).toFixed(2);
+      totalAggregate += Number(weightageMarks);
+      subjectData.push(sub.obt, sub.total, weightageMarks);
     });
 
-    const finalPercentage = ((totalAggregate / (s.subjects.length * weight)) * 100).toFixed(2);
+    const finalPercentage = ((totalAggregate / (subjectsList.length * weight)) * 100).toFixed(2);
     const grade = finalPercentage >= 80 ? "A-1" :
                   finalPercentage >= 70 ? "A" :
                   finalPercentage >= 60 ? "B" :
                   finalPercentage >= 50 ? "C" : "D";
 
-    s.subjects.forEach(sub => {
-      const weightageMarks = ((sub.obt / sub.total) * weight).toFixed(2);
-      // wrap in quotes to handle commas/spaces
-      rows.push([
-        `"${s.roll}"`,
-        `"${s.name}"`,
-        `"${s.className}"`,
-        `"${s.semester == 1 ? "Semester-I (45%)" : "Semester-II (55%)"}"`,
-        `"${sub.name}"`,
-        `"${sub.total}"`,
-        `"${sub.obt}"`,
-        `"${weight}%"`,
-        `"${weightageMarks}"`,
-        `"${totalAggregate.toFixed(2)}"`,
-        `"${finalPercentage}%"`,
-        `"${grade}"`
-      ]);
-    });
+    const row = [
+      `"${s.roll}"`,
+      `"${s.name}"`,
+      `"${s.className}"`,
+      `"${s.semester == 1 ? "Semester-I (45%)" : "Semester-II (55%)"}"`
+    ].concat(subjectData, totalAggregate.toFixed(2), finalPercentage + "%", grade);
+
+    rows.push(row);
   });
 
   const csv = rows.map(r => r.join(",")).join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "Full_Student_Result_Details.csv";
+  a.download = "Student_Result_Compact.csv";
   a.click();
 }
